@@ -16,7 +16,6 @@ def inscrever_novo_talento(talento_data: dict):
     embedding = modelo_ia.encode(texto_completo).tolist()
     
     talento_id = repositories.create_new_talento(talento_data, embedding)
-    # Aqui você poderia buscar o talento recém-criado para retornar o objeto completo, se necessário
     return {"id": talento_id, **talento_data}
 
 def listar_todos_talentos():

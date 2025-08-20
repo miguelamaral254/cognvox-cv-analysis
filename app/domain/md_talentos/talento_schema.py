@@ -1,4 +1,3 @@
-# app/domain/talentos/talento_schema.py
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Any, Dict
 from datetime import datetime

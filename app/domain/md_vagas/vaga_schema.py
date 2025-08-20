@@ -1,9 +1,7 @@
-# app/domain/vagas/vaga_schema.py
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 from datetime import datetime
  #TODO: Fazer descricao da vaga
-# --- Modelos para Análise (Ranking) ---
 class CandidatoRanqueado(BaseModel):
     id_talento: int
     nome: str
@@ -15,7 +13,6 @@ class RankingResponse(BaseModel):
     titulo_vaga: str
     ranking: List[CandidatoRanqueado]
 
-# --- Modelos para CRUD de Vagas ---
 class VagaBase(BaseModel):
     titulo_vaga: str = Field(..., example="Desenvolvedor Python Sênior")
     criterios_de_analise: Dict[str, Any] = Field(..., example={

@@ -6,7 +6,7 @@ def find_vaga_by_id(vaga_id: int):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, titulo_vaga, criterios_de_analise, top_x_candidatos, criado_em, finalizada_em FROM vagas WHERE id = %s",
+                "SELECT id, titulo_vaga, criterios_de_analise, criado_em, finalizada_em FROM vagas WHERE id = %s",
                 (vaga_id,)
             )
             vaga = cur.fetchone()
@@ -22,25 +22,25 @@ def find_all_vagas():
         return df.to_dict(orient='records')
 
 def create_new_vaga(vaga_data: dict):
-    sql = "INSERT INTO vagas (titulo_vaga, criterios_de_analise, top_x_candidatos) VALUES (%s, %s, %s) RETURNING id;"
+    sql = "INSERT INTO vagas (titulo_vaga, criterios_de_analise) VALUES (%s, %s) RETURNING id;"
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (
                 vaga_data['titulo_vaga'], 
-                json.dumps(vaga_data['criterios_de_analise']), 
-                vaga_data['top_x_candidatos']
+                json.dumps(vaga_data['criterios_de_analise'])
             ))
             new_id = cur.fetchone()[0]
             conn.commit()
             return new_id
 
 def update_existing_vaga(vaga_id: int, vaga_data: dict):
-    sql = "UPDATE vagas SET titulo_vaga = %s, criterios_de_analise = %s, top_x_candidatos = %s WHERE id = %s;"
+    sql = "UPDATE vagas SET titulo_vaga = %s, criterios_de_analise = %s WHERE id = %s;"
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (
-                vaga_data['titulo_vaga'], json.dumps(vaga_data['criterios_de_analise']), 
-                vaga_data['top_x_candidatos'], vaga_id
+                vaga_data['titulo_vaga'], 
+                json.dumps(vaga_data['criterios_de_analise']), 
+                vaga_id
             ))
             conn.commit()
             return cur.rowcount > 0

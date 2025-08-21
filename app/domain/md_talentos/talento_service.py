@@ -32,3 +32,11 @@ def inscrever_novo_talento(talento_data: dict):
 
 def listar_todos_talentos():
     return talento_repository.find_all_talentos()
+def buscar_talento_por_id(talento_id: int):
+    talento = talento_repository.find_talento_by_id(talento_id)
+    if not talento:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Talento não encontrado."
+        )
+    return talento

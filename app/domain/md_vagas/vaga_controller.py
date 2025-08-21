@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 from . import vaga_service
-from .vaga_schema import RankingResponse, VagaCreate, VagaPublic
+from .vaga_schema import RankingResponse, VagaCreate, VagaPublic, AnaliseRequest
 from typing import List
 
 router = APIRouter(prefix="/vagas", tags=["Vagas e Análise"])
@@ -21,10 +21,11 @@ def buscar_vaga_endpoint(vaga_id: int):
 def atualizar_vaga_endpoint(vaga_id: int, vaga_data: VagaCreate):
     return vaga_service.atualizar_vaga(vaga_id, vaga_data.model_dump())
 
-@router.post("/{vaga_id}/finalizar", response_model=VagaPublic)
+@router.post("/{vaga_id}/finalizar", status_code=status.HTTP_204_NO_CONTENT)
 def finalizar_vaga_endpoint(vaga_id: int):
-    return vaga_service.finalizar_vaga(vaga_id)
+    vaga_service.finalizar_vaga(vaga_id)
+    return None 
 
 @router.post("/{vaga_id}/analisar", response_model=RankingResponse)
-def analisar_vaga_endpoint(vaga_id: int):
-    return vaga_service.analisar_e_ranquear_vaga(vaga_id)
+def analisar_vaga_endpoint(vaga_id: int, request_body: AnaliseRequest):
+    return vaga_service.analisar_e_ranquear_vaga(vaga_id, request_body.top_candidatos)

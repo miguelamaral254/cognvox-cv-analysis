@@ -1,7 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 from datetime import datetime
- #TODO: Fazer descricao da vaga
+
+class AnaliseRequest(BaseModel):
+    top_candidatos: int = Field(10, ge=1, description="O número de candidatos no ranking final.")
+
 class CandidatoRanqueado(BaseModel):
     id_talento: int
     nome: str
@@ -18,7 +21,6 @@ class VagaBase(BaseModel):
     criterios_de_analise: Dict[str, Any] = Field(..., example={
         "Experiencia": {"descricao": "Experiência com FastAPI e Pydantic", "colunas": ["sobre_mim"], "peso": 0.7}
     })
-    top_x_candidatos: int = Field(..., example=10)
 
 class VagaCreate(VagaBase):
     pass

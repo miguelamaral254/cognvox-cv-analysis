@@ -8,7 +8,7 @@ def formatar_experiencia(exp_json):
     textos = [f"Cargo: {exp.get('cargo', '')}. Descrição: {exp.get('descricao', '')}" for exp in exp_json]
     return " ".join(textos)
 
-def analisar_e_ranquear_vaga(vaga_id: int):
+def analisar_e_ranquear_vaga(vaga_id: int, top_candidatos: int):
     params_vaga = vaga_repository.find_vaga_by_id(vaga_id)
     if not params_vaga or params_vaga.get("finalizada_em"):
         raise HTTPException(
@@ -31,10 +31,10 @@ def analisar_e_ranquear_vaga(vaga_id: int):
         df_analisado['score_final'] += df_analisado[f'similaridade_{nome}'] * float(detalhes.get("peso", 1.0))
 
     df_ranqueado = df_analisado.sort_values(by='score_final', ascending=False)
-    top_candidatos = df_ranqueado.head(params_vaga["top_x_candidatos"])
+    top_candidatos_df = df_ranqueado.head(top_candidatos)
     
     ranking_para_salvar, ranking_para_resposta = [], []
-    for _, row in top_candidatos.iterrows():
+    for _, row in top_candidatos_df.iterrows():
         scores_detalhados = {nome: row[f'similaridade_{nome}'] for nome in criterios.keys()}
         ranking_para_salvar.append({"id": row['id'], "score_final": row['score_final'], "scores_detalhados": scores_detalhados})
         ranking_para_resposta.append({
@@ -45,7 +45,7 @@ def analisar_e_ranquear_vaga(vaga_id: int):
     
     vaga_repository.save_ranking(vaga_id, ranking_para_salvar)
     return {"titulo_vaga": params_vaga["titulo_vaga"], "ranking": ranking_para_resposta}
-
+    
 def criar_nova_vaga(vaga_data: dict):
     try:
         vaga_id = vaga_repository.create_new_vaga(vaga_data)
@@ -73,8 +73,15 @@ def atualizar_vaga(vaga_id: int, vaga_data: dict):
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível atualizar a vaga.")
 
 def finalizar_vaga(vaga_id: int):
-    vaga_existente = buscar_vaga_por_id(vaga_id)
+    vaga = vaga_repository.find_vaga_by_id(vaga_id)
+    if not vaga:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vaga não encontrada.")
+    
+    if vaga.get("finalizada_em"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vaga já foi finalizada.")
+        
     success = vaga_repository.finalize_vaga_by_id(vaga_id)
-    if success: 
-        return vaga_repository.find_vaga_by_id(vaga_id)
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível finalizar a vaga.")
+    if not success: 
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível finalizar a vaga.")
+        
+    return True

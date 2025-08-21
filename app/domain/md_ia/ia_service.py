@@ -1,4 +1,3 @@
-# app/ia/ia_service.py
 import pandas as pd
 from sentence_transformers import util
 from .model_loader import model_loader

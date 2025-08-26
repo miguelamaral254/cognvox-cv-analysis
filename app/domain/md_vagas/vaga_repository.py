@@ -3,12 +3,20 @@ import json
 from app.infra.database import get_db_connection
 
 def find_vaga_by_id(vaga_id: int):
+    sql = """
+        SELECT 
+            vagas.*, 
+            areas.nome AS nome_area
+        FROM 
+            vagas
+        LEFT JOIN 
+            areas ON vagas.area_id = areas.id
+        WHERE 
+            vagas.id = %s;
+    """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, titulo_vaga, criterios_de_analise, criado_em, finalizada_em FROM vagas WHERE id = %s",
-                (vaga_id,)
-            )
+            cur.execute(sql, (vaga_id,))
             vaga = cur.fetchone()
             if vaga:
                 columns = [desc[0] for desc in cur.description]
@@ -16,17 +24,36 @@ def find_vaga_by_id(vaga_id: int):
     return None
 
 def find_all_vagas():
+    sql = """
+        SELECT 
+            vagas.*, 
+            areas.nome AS nome_area
+        FROM 
+            vagas
+        LEFT JOIN 
+            areas ON vagas.area_id = areas.id
+        WHERE 
+            vagas.finalizada_em IS NULL 
+        ORDER BY 
+            vagas.criado_em DESC;
+    """
     with get_db_connection() as conn:
-        sql = "SELECT * FROM vagas WHERE finalizada_em IS NULL ORDER BY criado_em DESC;"
         df = pd.read_sql_query(sql, conn)
         return df.to_dict(orient='records')
 
 def create_new_vaga(vaga_data: dict):
-    sql = "INSERT INTO vagas (titulo_vaga, criterios_de_analise) VALUES (%s, %s) RETURNING id;"
+    sql = """
+        INSERT INTO vagas (titulo_vaga, descricao, cidade, modelo_trabalho, area_id, criterios_de_analise) 
+        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
+    """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (
-                vaga_data['titulo_vaga'], 
+                vaga_data['titulo_vaga'],
+                vaga_data['descricao'],
+                vaga_data['cidade'],
+                vaga_data['modelo_trabalho'],
+                vaga_data['area_id'],
                 json.dumps(vaga_data['criterios_de_analise'])
             ))
             new_id = cur.fetchone()[0]
@@ -34,12 +61,25 @@ def create_new_vaga(vaga_data: dict):
             return new_id
 
 def update_existing_vaga(vaga_id: int, vaga_data: dict):
-    sql = "UPDATE vagas SET titulo_vaga = %s, criterios_de_analise = %s WHERE id = %s;"
+    sql = """
+        UPDATE vagas SET 
+            titulo_vaga = %s, 
+            descricao = %s, 
+            cidade = %s, 
+            modelo_trabalho = %s, 
+            area_id = %s, 
+            criterios_de_analise = %s 
+        WHERE id = %s;
+    """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (
-                vaga_data['titulo_vaga'], 
-                json.dumps(vaga_data['criterios_de_analise']), 
+                vaga_data['titulo_vaga'],
+                vaga_data['descricao'],
+                vaga_data['cidade'],
+                vaga_data['modelo_trabalho'],
+                vaga_data['area_id'],
+                json.dumps(vaga_data['criterios_de_analise']),
                 vaga_id
             ))
             conn.commit()

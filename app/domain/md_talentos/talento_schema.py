@@ -5,6 +5,7 @@ from datetime import datetime
 class TalentoBase(BaseModel):
     nome: str = Field(..., example="Maria Silva")
     email: EmailStr = Field(..., example="maria.silva@example.com")
+    cidade: str | None = Field(None, example="Recife") # CAMPO ADICIONADO
     telefone: str | None = Field(None, example="+55 11 98765-4321", pattern=r"^\+\d{2} \d{2} \d{5}-\d{4}$")
     sobre_mim: str | None = Field(None, example="Sou uma desenvolvedora apaixonada por tecnologia...")
     experiencia_profissional: List[Dict[str, Any]] | None = Field(None, example=[{"cargo": "Dev Pleno", "empresa": "Tech Corp"}])
@@ -25,3 +26,4 @@ class TalentoInList(BaseModel):
     nome: str
     email: EmailStr
     vaga_id: int
+    cidade: str | None = None 

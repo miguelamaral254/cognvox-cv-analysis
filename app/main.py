@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware  # Importe o middleware
+from fastapi.middleware.cors import CORSMiddleware  
 from app.domain.md_vagas import vaga_controller
 from app.domain.md_talentos import talento_controller
 from app.domain.md_ia.model_loader import model_loader

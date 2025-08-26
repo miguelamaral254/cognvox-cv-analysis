@@ -11,11 +11,11 @@ def find_talentos_by_vaga_id(vaga_id: int) -> pd.DataFrame:
 def create_new_talento(talento_data: dict, embedding: list):
     sql = """
         INSERT INTO talentos (
-            vaga_id, nome, email, telefone, sobre_mim, 
+            vaga_id, nome, email, cidade, telefone, sobre_mim, 
             experiencia_profissional, formacao, idiomas, 
             aceita_termos, embedding
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -23,6 +23,7 @@ def create_new_talento(talento_data: dict, embedding: list):
                 talento_data['vaga_id'],
                 talento_data['nome'],
                 talento_data['email'],
+                talento_data.get('cidade'),
                 talento_data.get('telefone'),
                 talento_data['sobre_mim'],
                 json.dumps(talento_data.get('experiencia_profissional')),
@@ -40,17 +41,14 @@ def find_all_talentos():
         sql = "SELECT * FROM talentos ORDER BY criado_em DESC;"
         df = pd.read_sql_query(sql, conn)
         
-        # Converte o DataFrame para uma lista de dicionários
         records = df.to_dict(orient='records')
         
-        # Garante que os campos JSON sejam desserializados se vierem como strings
         for record in records:
             for field in ['experiencia_profissional', 'formacao', 'idiomas']:
                 if isinstance(record.get(field), str):
                     try:
                         record[field] = json.loads(record[field])
                     except json.JSONDecodeError:
-                        # Mantém como está se não for um JSON válido
                         pass
         return records
 
@@ -61,7 +59,6 @@ def find_talento_by_id(talento_id: int):
 
         if not df.empty:
             record = df.iloc[0].to_dict()
-            # Garante que os campos JSON sejam desserializados
             for field in ['experiencia_profissional', 'formacao', 'idiomas']:
                 if isinstance(record.get(field), str):
                     try:

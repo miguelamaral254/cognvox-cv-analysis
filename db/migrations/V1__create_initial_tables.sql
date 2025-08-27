@@ -1,3 +1,4 @@
+-- Arquivo V1__create_initial_tables.sql
 CREATE TABLE IF NOT EXISTS areas (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL UNIQUE,
@@ -42,4 +43,20 @@ CREATE TABLE IF NOT EXISTS top_aplicantes (
     score_final FLOAT NOT NULL,
     scores_por_criterio JSONB NOT NULL,
     analisado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TYPE user_role AS ENUM ('admin', 'user1', 'user2');
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    hashed_password VARCHAR(255) NOT NULL,
+    img_path VARCHAR(255),
+    role user_role NOT NULL,
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version VARCHAR(255) PRIMARY KEY
 );

@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS talentos (
     experiencia_profissional JSONB,
     formacao JSONB,
     idiomas JSONB,
+    respostas_criterios JSONB,
     aceita_termos BOOLEAN NOT NULL,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     embedding TEXT,

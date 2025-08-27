@@ -13,7 +13,7 @@ app = FastAPI(
 
 # Adicione o middleware de CORS aqui
 origins = [
-    "http://localhost:5173",  # A URL do seu frontend Vite
+    "http://localhost:5173",  
     "http://127.0.0.1:5173"
 ]
 

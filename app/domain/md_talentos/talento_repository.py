@@ -13,9 +13,9 @@ def create_new_talento(talento_data: dict, embedding: list):
         INSERT INTO talentos (
             vaga_id, nome, email, cidade, telefone, sobre_mim, 
             experiencia_profissional, formacao, idiomas, 
-            aceita_termos, embedding
+            respostas_criterios, aceita_termos, embedding
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -29,6 +29,7 @@ def create_new_talento(talento_data: dict, embedding: list):
                 json.dumps(talento_data.get('experiencia_profissional')),
                 json.dumps(talento_data.get('formacao')),
                 json.dumps(talento_data.get('idiomas')),
+                json.dumps(talento_data.get('respostas_criterios')),
                 talento_data['aceita_termos'],
                 str(embedding)
             ))
@@ -44,7 +45,7 @@ def find_all_talentos():
         records = df.to_dict(orient='records')
         
         for record in records:
-            for field in ['experiencia_profissional', 'formacao', 'idiomas']:
+            for field in ['experiencia_profissional', 'formacao', 'idiomas', 'respostas_criterios']:
                 if isinstance(record.get(field), str):
                     try:
                         record[field] = json.loads(record[field])
@@ -59,7 +60,7 @@ def find_talento_by_id(talento_id: int):
 
         if not df.empty:
             record = df.iloc[0].to_dict()
-            for field in ['experiencia_profissional', 'formacao', 'idiomas']:
+            for field in ['experiencia_profissional', 'formacao', 'idiomas', 'respostas_criterios']:
                 if isinstance(record.get(field), str):
                     try:
                         record[field] = json.loads(record[field])

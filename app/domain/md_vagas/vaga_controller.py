@@ -11,11 +11,11 @@ def criar_vaga_endpoint(vaga_data: VagaCreate, _ = Depends(get_current_user)):
     return vaga_service.criar_nova_vaga(vaga_data.model_dump())
 
 @router.get("", response_model=List[VagaPublic])
-def listar_vagas_endpoint(_ = Depends(get_current_user)):
+def listar_vagas_endpoint():
     return vaga_service.listar_vagas_abertas()
 
 @router.get("/{vaga_id}", response_model=VagaPublic)
-def buscar_vaga_endpoint(vaga_id: int, _ = Depends(get_current_user)):
+def buscar_vaga_endpoint(vaga_id: int):
     return vaga_service.buscar_vaga_por_id(vaga_id)
 
 @router.put("/{vaga_id}", response_model=VagaPublic)

@@ -8,7 +8,7 @@ from app.domain.md_users.user_schema import UserPublic
 router = APIRouter(prefix="/talentos", tags=["Talentos"])
 
 @router.post("", response_model=TalentoPublic, status_code=status.HTTP_201_CREATED)
-def inscrever_talento_endpoint(talento_data: TalentoCreate, _ = Depends(get_current_user)):
+def inscrever_talento_endpoint(talento_data: TalentoCreate):
     novo_talento = talento_service.inscrever_novo_talento(talento_data.model_dump())
     return novo_talento
 

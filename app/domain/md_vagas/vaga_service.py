@@ -32,7 +32,12 @@ def analisar_e_ranquear_vaga(vaga_id: int, top_candidatos: int):
         df_candidatos['experiencia_formatada'] = df_candidatos['experiencia_profissional'].apply(formatar_experiencia)
 
     criterios_obrigatorios = params_vaga.get("criterios_de_analise", {})
-    criterios_diferenciais = params_vaga.get("criterios_diferenciais_de_analise", {})
+    criterios_diferenciais = params_vaga.get("criterios_diferenciais_de_analise") # Get the raw value
+    
+    # Check if the differential criteria is None and set to an empty dict if so
+    if criterios_diferenciais is None:
+        criterios_diferenciais = {}
+
     todos_criterios = {**criterios_obrigatorios, **criterios_diferenciais}
 
     df_analisado = ia_service.calcular_similaridade(df_candidatos, todos_criterios)
@@ -56,7 +61,6 @@ def analisar_e_ranquear_vaga(vaga_id: int, top_candidatos: int):
     
     vaga_repository.save_ranking(vaga_id, ranking_para_salvar)
     return {"titulo_vaga": params_vaga["titulo_vaga"], "ranking": ranking_para_resposta}
-    
 def criar_nova_vaga(vaga_data: dict):
     try:
         vaga_id = vaga_repository.create_new_vaga(vaga_data)

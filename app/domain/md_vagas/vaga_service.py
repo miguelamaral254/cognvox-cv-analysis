@@ -1,3 +1,4 @@
+import json
 from fastapi import HTTPException, status
 from . import vaga_repository
 from app.domain.md_talentos import talento_repository
@@ -20,14 +21,24 @@ def analisar_e_ranquear_vaga(vaga_id: int, top_candidatos: int):
     if df_candidatos.empty: 
         return {"titulo_vaga": params_vaga["titulo_vaga"], "ranking": []}
 
+    colunas_json = ['experiencia_profissional', 'respostas_criterios', 'respostas_diferenciais']
+    for coluna in colunas_json:
+        if coluna in df_candidatos.columns and not df_candidatos[coluna].empty:
+            df_candidatos[coluna] = df_candidatos[coluna].apply(
+                lambda x: json.loads(x) if isinstance(x, str) else x
+            )
+
     if 'experiencia_profissional' in df_candidatos.columns:
         df_candidatos['experiencia_formatada'] = df_candidatos['experiencia_profissional'].apply(formatar_experiencia)
 
-    criterios = params_vaga["criterios_de_analise"]
-    df_analisado = ia_service.calcular_similaridade(df_candidatos, criterios)
+    criterios_obrigatorios = params_vaga.get("criterios_de_analise", {})
+    criterios_diferenciais = params_vaga.get("criterios_diferenciais_de_analise", {})
+    todos_criterios = {**criterios_obrigatorios, **criterios_diferenciais}
+
+    df_analisado = ia_service.calcular_similaridade(df_candidatos, todos_criterios)
 
     df_analisado['score_final'] = 0.0
-    for nome, detalhes in criterios.items():
+    for nome, detalhes in todos_criterios.items():
         df_analisado['score_final'] += df_analisado[f'similaridade_{nome}'] * float(detalhes.get("peso", 1.0))
 
     df_ranqueado = df_analisado.sort_values(by='score_final', ascending=False)
@@ -35,7 +46,7 @@ def analisar_e_ranquear_vaga(vaga_id: int, top_candidatos: int):
     
     ranking_para_salvar, ranking_para_resposta = [], []
     for _, row in top_candidatos_df.iterrows():
-        scores_detalhados = {nome: row[f'similaridade_{nome}'] for nome in criterios.keys()}
+        scores_detalhados = {nome: row[f'similaridade_{nome}'] for nome in todos_criterios.keys()}
         ranking_para_salvar.append({"id": row['id'], "score_final": row['score_final'], "scores_detalhados": scores_detalhados})
         ranking_para_resposta.append({
             "id_talento": row['id'], "nome": row['nome'], "email": row['email'],
@@ -66,7 +77,7 @@ def buscar_vaga_por_id(vaga_id: int):
     return vaga
 
 def atualizar_vaga(vaga_id: int, vaga_data: dict):
-    vaga_existente = buscar_vaga_por_id(vaga_id)
+    buscar_vaga_por_id(vaga_id)
     success = vaga_repository.update_existing_vaga(vaga_id, vaga_data)
     if success: 
         return vaga_repository.find_vaga_by_id(vaga_id)

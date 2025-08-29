@@ -43,8 +43,11 @@ def find_all_vagas():
 
 def create_new_vaga(vaga_data: dict):
     sql = """
-        INSERT INTO vagas (titulo_vaga, descricao, cidade, modelo_trabalho, area_id, criterios_de_analise) 
-        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
+        INSERT INTO vagas (
+            titulo_vaga, descricao, cidade, modelo_trabalho, area_id, 
+            criterios_de_analise, vaga_pcd, criterios_diferenciais_de_analise
+        ) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -54,7 +57,9 @@ def create_new_vaga(vaga_data: dict):
                 vaga_data['cidade'],
                 vaga_data['modelo_trabalho'],
                 vaga_data['area_id'],
-                json.dumps(vaga_data['criterios_de_analise'])
+                json.dumps(vaga_data['criterios_de_analise']),
+                vaga_data.get('vaga_pcd', False),
+                json.dumps(vaga_data.get('criterios_diferenciais_de_analise'))
             ))
             new_id = cur.fetchone()[0]
             conn.commit()
@@ -68,7 +73,9 @@ def update_existing_vaga(vaga_id: int, vaga_data: dict):
             cidade = %s, 
             modelo_trabalho = %s, 
             area_id = %s, 
-            criterios_de_analise = %s 
+            criterios_de_analise = %s,
+            vaga_pcd = %s,
+            criterios_diferenciais_de_analise = %s
         WHERE id = %s;
     """
     with get_db_connection() as conn:
@@ -80,6 +87,8 @@ def update_existing_vaga(vaga_id: int, vaga_data: dict):
                 vaga_data['modelo_trabalho'],
                 vaga_data['area_id'],
                 json.dumps(vaga_data['criterios_de_analise']),
+                vaga_data.get('vaga_pcd', False),
+                json.dumps(vaga_data.get('criterios_diferenciais_de_analise')),
                 vaga_id
             ))
             conn.commit()

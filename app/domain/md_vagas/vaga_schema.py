@@ -1,5 +1,3 @@
-# vaga_schema.py (Arquivo completo e corrigido)
-
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -33,6 +31,10 @@ class VagaBase(BaseModel):
     criterios_de_analise: Dict[str, Any] = Field(..., example={
         "Experiencia": {"descricao": "Experiência com FastAPI...", "colunas": ["sobre_mim"], "peso": 0.7}
     })
+    vaga_pcd: bool = Field(False, description="Indica se a vaga é afirmativa para Pessoas com Deficiência (PCD).")
+    criterios_diferenciais_de_analise: Optional[Dict[str, Any]] = Field(None, example={
+        "Inglês Avançado": {"descricao": "Comunicação em inglês será um diferencial", "colunas": ["idiomas"], "peso": 0.1}
+    })
 
 class VagaCreate(VagaBase):
     pass
@@ -41,7 +43,7 @@ class VagaPublic(VagaBase):
     id: int
     criado_em: datetime
     finalizada_em: Optional[datetime] = None
-    nome_area: Optional[str] = None # CAMPO ADICIONADO PARA RECEBER O JOIN
+    nome_area: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -52,7 +54,8 @@ class VagaInList(BaseModel):
     descricao: str
     cidade: str 
     modelo_trabalho: ModeloTrabalho
-    area_id: int # Mantemos o ID caso seja útil
-    nome_area: Optional[str] = None # CAMPO ADICIONADO PARA RECEBER O JOIN
+    area_id: int
+    nome_area: Optional[str] = None
+    vaga_pcd: bool = Field(False)
     criado_em: datetime
     finalizada_em: Optional[datetime] = None

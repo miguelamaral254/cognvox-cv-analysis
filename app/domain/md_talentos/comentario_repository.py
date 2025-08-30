@@ -3,41 +3,11 @@ import json
 from app.infra.database import get_db_connection
 from psycopg2.extras import DictCursor
 
-def update_status(talento_id: int, ativo: bool):
-    sql = "UPDATE talentos SET ativo = %s WHERE id = %s;"
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(sql, (ativo, talento_id))
-            conn.commit()
-            return cur.rowcount > 0
-
 def find_talentos_by_vaga_id(vaga_id: int) -> pd.DataFrame:
     with get_db_connection() as conn:
         sql_query = "SELECT * FROM talentos WHERE vaga_id = %s;"
         df = pd.read_sql_query(sql_query, conn, params=(vaga_id,))
         return df
-
-def find_and_format_talentos_by_vaga_id(vaga_id: int) -> list:
-    sql_query = """
-        SELECT 
-            t.*,
-            v.area_id,
-            a.nome AS nome_area
-        FROM 
-            talentos t
-        LEFT JOIN vagas v ON t.vaga_id = v.id
-        LEFT JOIN areas a ON v.area_id = a.id
-        WHERE t.vaga_id = %s 
-        ORDER BY t.criado_em DESC;
-    """
-    with get_db_connection() as conn:
-        df = pd.read_sql_query(sql_query, conn, params=(vaga_id,))
-        if df.empty:
-            return []
-        records = df.to_dict(orient='records')
-        for record in records:
-            record['comentarios'] = find_comments_by_talento_id(record['id'])
-        return _parse_json_fields(records)
 
 def create_new_talento(talento_data: dict, embedding: list):
     sql = """
@@ -98,8 +68,7 @@ def find_all_talentos():
     with get_db_connection() as conn:
         df = pd.read_sql_query(sql, conn)
         records = df.to_dict(orient='records')
-        for record in records:
-            record['comentarios'] = find_comments_by_talento_id(record['id'])
+        # Adicionar aqui a busca de comentários para cada talento se necessário na listagem geral
         return _parse_json_fields(records)
 
 def find_talento_by_id(talento_id: int):
@@ -118,6 +87,8 @@ def find_talento_by_id(talento_id: int):
             parsed_record['comentarios'] = find_comments_by_talento_id(talento_id)
             return parsed_record
     return None
+
+# --- NOVAS FUNÇÕES PARA COMENTÁRIOS ---
 
 def create_comment(texto: str, talento_id: int, user_id: int):
     sql = """

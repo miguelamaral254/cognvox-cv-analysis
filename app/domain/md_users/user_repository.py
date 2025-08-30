@@ -1,8 +1,6 @@
-# app/domain/md_users/user_repository.py
-
 from app.infra.database import get_db_connection
-from .user_schema import UserCreate
-from app.domain.md_auth.password_utils import get_password_hash # Importa do novo arquivo
+from .user_schema import UserCreate, UserProfileUpdate
+from app.domain.md_auth.password_utils import get_password_hash
 from psycopg2.extras import DictCursor
 
 def get_user_by_email(email: str):
@@ -14,7 +12,6 @@ def get_user_by_email(email: str):
             return dict(user) if user else None
 
 def find_user_by_id(user_id: int):
-    # ... (código existente)
     sql = "SELECT * FROM users WHERE id = %s;"
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=DictCursor) as cur:
@@ -23,7 +20,6 @@ def find_user_by_id(user_id: int):
             return dict(user) if user else None
 
 def find_all_users():
-    # ... (código existente)
     sql = "SELECT * FROM users ORDER BY nome ASC;"
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=DictCursor) as cur:
@@ -49,3 +45,19 @@ def create_user(user_data: UserCreate):
             new_id = cur.fetchone()[0]
             conn.commit()
     return get_user_by_email(user_data.email)
+
+def update_profile(user_id: int, profile_data: UserProfileUpdate):
+    sql = "UPDATE users SET nome = %s, email = %s WHERE id = %s;"
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (profile_data.nome, profile_data.email, user_id))
+            conn.commit()
+            return cur.rowcount > 0
+
+def update_password(user_id: int, new_hashed_password: str):
+    sql = "UPDATE users SET hashed_password = %s WHERE id = %s;"
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (new_hashed_password, user_id))
+            conn.commit()
+            return cur.rowcount > 0

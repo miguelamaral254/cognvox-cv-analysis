@@ -1,5 +1,3 @@
-# app/domain/md_users/user_schema.py
-
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from enum import Enum
@@ -26,3 +24,13 @@ class UserPublic(UserBase):
     
     class Config:
         from_attributes = True
+
+class UserProfileUpdate(BaseModel):
+    nome: str = Field(..., example="Novo Nome do Usuário")
+    email: EmailStr = Field(..., example="novo.email@example.com")
+    currentPassword: str = Field(..., description="Senha atual do usuário para confirmação")
+
+
+class UserPasswordUpdate(BaseModel):
+    currentPassword: str = Field(..., example="senha_atual_123")
+    newPassword: str = Field(..., min_length=8, example="nova_senha_forte_456")

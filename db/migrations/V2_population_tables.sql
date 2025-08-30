@@ -50,58 +50,6 @@ INSERT INTO vagas (titulo_vaga, descricao, cidade, modelo_trabalho, area_id, cri
 '{
     "Sistemas_Financeiros": {"descricao": "Conhecimento em sistemas financeiros, legislativos ou demandas legais", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.2}
 }');
--- V2__populate_tables.sql
-
-INSERT INTO areas (nome, descricao) VALUES
-('Tecnologia da Informação', 'Vagas relacionadas a desenvolvimento de software, infraestrutura, cibersegurança, etc.'),
-('Recursos Humanos', 'Vagas para recrutamento, departamento pessoal, desenvolvimento organizacional e gestão de pessoas.'),
-('Marketing e Vendas', 'Oportunidades para marketing digital, comunicação, vendas B2B/B2C e relacionamento com cliente.'),
-('Psicologia', 'Vagas para psicólogos clínicos, organizacionais e outras especialidades da área.')
-ON CONFLICT (nome) DO NOTHING;
-
-INSERT INTO vagas (titulo_vaga, descricao, cidade, modelo_trabalho, area_id, criterios_de_analise, vaga_pcd, criterios_diferenciais_de_analise) VALUES
-('Desenvolvedor(a) Backend Pleno (Node.js)', 'Estamos à procura de um(a) Desenvolvedor(a) Backend Pleno para integrar nossa equipe em Recife. O candidato ideal deve ter experiência sólida na construção de APIs escaláveis utilizando Node.js e TypeScript.', 'Recife', 'Híbrido', 1,
-'{
-    "Experiencia_Tecnica": {"descricao": "Domínio em Node.js, TypeScript, SQL e Git.", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.7},
-    "Habilidades_DevOps": {"descricao": "Conhecimento em Docker, Kubernetes e AWS.", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.3}
-}', false, 
-'{
-    "Certificacao_Cloud": {"descricao": "Possuir certificações em nuvem (AWS, Azure, GCP) será um grande diferencial.", "colunas": ["cursos_extracurriculares"], "peso": 0.2}
-}'),
-('Analista de Recrutamento e Seleção Sênior', 'Buscamos um(a) Analista de Recrutamento e Seleção Sênior para atuar presencialmente em nosso escritório de Recife, com foco em vagas de tecnologia.', 'Recife', 'Presencial', 2,
-'{
-    "Experiencia_Tecnica_RS": {"descricao": "Experiência comprovada em recrutamento e seleção para posições de tecnologia.", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.7},
-    "Idiomas_e_Ferramentas": {"descricao": "Inglês avançado e familiaridade com sistemas ATS.", "colunas": ["idiomas", "sobre_mim"], "peso": 0.3}
-}', false, null),
-('Especialista em Marketing Digital', 'Procuramos um(a) Especialista em Marketing Digital para liderar e executar estratégias de crescimento online em nosso time de Jaboatão.', 'Jaboatão dos Guararapes', 'Presencial', 3,
-'{
-    "Estrategia_e_Execucao": {"descricao": "Experiência em marketing de conteúdo, SEO e Google Ads.", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.8},
-    "Analise_de_Dados": {"descricao": "Habilidade para analisar métricas e usar ferramentas de automação.", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.2}
-}', false, 
-'{
-    "Edicao_de_Video": {"descricao": "Conhecimento em Adobe Premiere ou Final Cut será um diferencial.", "colunas": ["cursos_extracurriculares", "sobre_mim"], "peso": 0.15}
-}'),
-('Psicólogo(a) Clínico', 'Vaga para psicólogo(a) clínico com foco em terapia cognitivo-comportamental. Atuação 100% remota, atendendo pacientes de diversas localidades.', 'N/A', 'Remoto', 4,
-'{
-    "Formacao_Especializacao": {"descricao": "Pós-graduação ou especialização em Terapia Cognitivo-Comportamental (TCC).", "colunas": ["formacao", "sobre_mim"], "peso": 0.6},
-    "Experiencia_Clinica": {"descricao": "Experiência mínima de 3 anos em atendimento clínico.", "colunas": ["experiencia_profissional"], "peso": 0.4}
-}', true, null),
-('Desenvolvedor(a) Front-end Júnior', 'Oportunidade para desenvolvedor(a) front-end júnior atuar em modelo híbrido em nosso polo de Jaboatão, trabalhando com React e TypeScript.', 'Jaboatão dos Guararapes', 'Híbrido', 1,
-'{
-    "Conhecimento_Frontend": {"descricao": "Conhecimento em React, HTML5, CSS3 e TypeScript.", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.9},
-    "Versionamento_Codigo": {"descricao": "Experiência básica com Git.", "colunas": ["sobre_mim"], "peso": 0.1}
-}', true, null),
-('Desenvolvedor Java Jr', '<p>A <strong>Cognvox</strong> está em constante evolução. Atuamos com projetos desafiadores que exigem alta performance e segurança.</p><p>Todas as nossas oportunidades são inclusivas e abertas para pessoas com deficiência.</p><hr><h2>DESAFIO</h2><p>Estamos em busca de um(a) profissional com conhecimentos em <strong>análise e desenvolvimento de sistemas, lógica de programação e bancos de dados</strong> para atuar <strong>presencialmente em Recife</strong>.</p>', 'Recife', 'Presencial', 1, 
-'{
-    "Ingles_": {"peso": 0.5, "colunas": ["idiomas"], "descricao": "precisa Ter ingles intermediario(b1-b2) pra mais (avançado c1-c2)"}, 
-    "Java/Springboot": {"peso": 0.5, "colunas": ["sobre_mim", "experiencia_profissional"], "descricao": "Linguagem de programação para back-end (Spring Boot, JAVA)"}, 
-    "Lógica_de_programação": {"peso": 0.3, "colunas": ["sobre_mim", "experiencia_profissional"], "descricao": "Precisa ter Sólidos conhecimentos em análise e desenvolvimento de sistemas e Lógica de programação"}, 
-    "Banco_de_Dados_Relacionais_": {"peso": 0.5, "colunas": ["sobre_mim", "experiencia_profissional"], "descricao": "Precisa ter Banco de Dados (Oracle e/ou SQLServer)"}, 
-    "Angular/javascript/typescript": {"peso": 0.3, "colunas": ["sobre_mim", "experiencia_profissional"], "descricao": "Precisa ter Angular/javascript/typescript"}
-}', true,
-'{
-    "Sistemas_Financeiros": {"descricao": "Conhecimento em sistemas financeiros, legislativos ou demandas legais", "colunas": ["sobre_mim", "experiencia_profissional"], "peso": 0.2}
-}');
 
 INSERT INTO talentos (
     vaga_id, nome, email, cidade, telefone, sobre_mim, experiencia_profissional, formacao, idiomas, 
@@ -122,6 +70,14 @@ INSERT INTO users (nome, email, hashed_password, role) VALUES
 ('Usuário Dois', 'usuario.dois@example.com', '$2b$12$kODB6/ASOEVpcQB742v4qehmqqy8z44txJVpOAFpXpy5qrS/uOqYq', 'user2')
 ON CONFLICT (email) DO NOTHING;
 
+INSERT INTO comentarios_talentos (user_id, talento_id, texto) VALUES
+(1, 6, 'Candidato com excelente perfil técnico, muito alinhado com os requisitos da vaga de Java Jr.'),
+(2, 6, 'Concordo, a experiência com Java e Docker é um grande diferencial. Sugiro avançar para a próxima fase da entrevista técnica.'),
+(1, 2, 'Perfil de DevOps muito forte. Embora não se encaixe na vaga atual, vale a pena manter no radar para futuras oportunidades na área de infraestrutura.')
+ON CONFLICT (id) DO NOTHING;
+
 SELECT setval('areas_id_seq', (SELECT MAX(id) FROM areas), true);
 SELECT setval('vagas_id_seq', (SELECT MAX(id) FROM vagas), true);
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users), true);
 SELECT setval('talentos_id_seq', (SELECT MAX(id) FROM talentos), true);
+SELECT setval('comentarios_talentos_id_seq', (SELECT MAX(id) FROM comentarios_talentos), true);

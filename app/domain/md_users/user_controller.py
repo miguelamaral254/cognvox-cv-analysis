@@ -1,7 +1,7 @@
-from fastapi import APIRouter, status, Depends
-from typing import List
+from fastapi import APIRouter, status, Depends, HTTPException
+from typing import List, Dict
 from . import user_service
-from .user_schema import UserCreate, UserPublic
+from .user_schema import UserCreate, UserPublic, UserProfileUpdate, UserPasswordUpdate
 from app.domain.md_auth.auth_service import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Usuários"])
@@ -11,8 +11,7 @@ def create_user_endpoint(
     user_data: UserCreate, 
     current_user: UserPublic = Depends(get_current_user)
 ):
-    new_user = user_service.create_new_user(user_data)
-    return new_user
+    return user_service.create_new_user(user_data)
 
 @router.get("", response_model=List[UserPublic])
 def list_users_endpoint(current_user: UserPublic = Depends(get_current_user)):
@@ -24,3 +23,23 @@ def get_user_endpoint(
     current_user: UserPublic = Depends(get_current_user)
 ):
     return user_service.get_user_by_id(user_id)
+
+@router.put("/{user_id}/profile", response_model=UserPublic)
+def update_profile_endpoint(
+    user_id: int,
+    profile_data: UserProfileUpdate,
+    current_user: UserPublic = Depends(get_current_user)
+):
+    if user_id != current_user.id and current_user.role != 'admin':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ação não permitida.")
+    return user_service.update_user_profile(user_id, profile_data)
+
+@router.put("/{user_id}/password", response_model=Dict[str, str])
+def update_password_endpoint(
+    user_id: int,
+    password_data: UserPasswordUpdate,
+    current_user: UserPublic = Depends(get_current_user)
+):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ação não permitida.")
+    return user_service.update_user_password(user_id, password_data)

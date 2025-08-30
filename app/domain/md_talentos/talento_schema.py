@@ -2,6 +2,24 @@ from pydantic import BaseModel, Field, EmailStr
 from typing import List, Any, Dict
 from datetime import datetime
 
+class ComentarioBase(BaseModel):
+    texto: str = Field(..., example="Candidato parece promissor.")
+
+class ComentarioCreate(ComentarioBase):
+    pass 
+
+class ComentarioPublic(ComentarioBase):
+    id: int
+    criado_em: datetime
+    user_id: int
+    user_nome: str
+
+    class Config:
+        from_attributes = True
+
+class TalentoStatusUpdate(BaseModel):
+    ativo: bool
+
 class TalentoBase(BaseModel):
     nome: str = Field(..., max_length=255, example="Maria Silva")
     email: EmailStr = Field(..., example="maria.silva@example.com")
@@ -22,6 +40,7 @@ class TalentoBase(BaseModel):
     deficiencia: bool = Field(False)
     aceita_termos: bool
     confirmar_dados_verdadeiros: bool
+    ativo: bool = Field(True)
 
 class TalentoCreate(TalentoBase):
     vaga_id: int
@@ -32,6 +51,7 @@ class TalentoPublic(TalentoBase):
     criado_em: datetime
     area_id: int | None = None
     nome_area: str | None = None
+    comentarios: List[ComentarioPublic] = []
 
 class TalentoInList(BaseModel):
     id: int
@@ -41,3 +61,4 @@ class TalentoInList(BaseModel):
     cidade: str | None = None
     area_id: int | None = None
     nome_area: str | None = None
+    ativo: bool

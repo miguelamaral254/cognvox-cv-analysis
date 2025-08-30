@@ -1,29 +1,55 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
 from . import talento_service
-from .talento_schema import TalentoCreate, TalentoPublic
+from .talento_schema import TalentoCreate, TalentoPublic, ComentarioCreate, ComentarioPublic, TalentoStatusUpdate
+from app.domain.md_users.user_schema import UserPublic
 from app.domain.md_auth.auth_service import get_current_user
 
 router = APIRouter(prefix="/talentos", tags=["Talentos"])
 
 @router.post("", response_model=TalentoPublic, status_code=status.HTTP_201_CREATED)
 def inscrever_talento_endpoint(talento_data: TalentoCreate):
-    
-    print("--- DADOS RECEBIDOS E VALIDADOS PELO PYDANTIC ---")
-    print(talento_data.model_dump())
-    print("-------------------------------------------------")
-    
     novo_talento = talento_service.inscrever_novo_talento(talento_data.model_dump())
     return novo_talento
 
 @router.get("", response_model=List[TalentoPublic])
-def listar_talentos_endpoint(_ = Depends(get_current_user)):
+def listar_talentos_endpoint(current_user: UserPublic = Depends(get_current_user)):
     return talento_service.listar_todos_talentos()
 
 @router.get("/{talento_id}", response_model=TalentoPublic)
-def buscar_talento_endpoint(talento_id: int, _ = Depends(get_current_user)):
+def buscar_talento_endpoint(talento_id: int, current_user: UserPublic = Depends(get_current_user)):
     return talento_service.buscar_talento_por_id(talento_id)
 
 @router.get("/vaga/{vaga_id}", response_model=List[TalentoPublic])
-def listar_talentos_por_vaga_endpoint(vaga_id: int, _ = Depends(get_current_user)):
+def listar_talentos_por_vaga_endpoint(vaga_id: int, current_user: UserPublic = Depends(get_current_user)):
     return talento_service.listar_talentos_por_vaga(vaga_id)
+
+@router.patch("/{talento_id}/status", response_model=TalentoPublic, tags=["Talentos"])
+def update_talento_status_endpoint(
+    talento_id: int,
+    status_update: TalentoStatusUpdate,
+    current_user: UserPublic = Depends(get_current_user)
+):
+    if current_user.role not in ["admin", "user1"]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ação não permitida.")
+    return talento_service.update_talento_status(talento_id, status_update.ativo)
+
+@router.post("/{talento_id}/comentarios", response_model=ComentarioPublic, status_code=status.HTTP_201_CREATED, tags=["Comentários"])
+def create_comment_endpoint(
+    talento_id: int,
+    comentario_data: ComentarioCreate,
+    current_user: UserPublic = Depends(get_current_user)
+):
+    return talento_service.add_new_comment(
+        texto=comentario_data.texto,
+        talento_id=talento_id,
+        user=current_user
+    )
+
+@router.delete("/comentarios/{comment_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Comentários"])
+def delete_comment_endpoint(
+    comment_id: int,
+    current_user: UserPublic = Depends(get_current_user)
+):
+    talento_service.remove_comment(comment_id, user=current_user)
+    return

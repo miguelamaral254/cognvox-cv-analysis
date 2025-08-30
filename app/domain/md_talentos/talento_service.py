@@ -3,6 +3,7 @@ from psycopg2.errors import UniqueViolation
 from . import talento_repository
 from app.domain.md_vagas import vaga_repository
 from app.domain.md_ia import ia_service
+from app.domain.md_users.user_schema import UserPublic
 
 def inscrever_novo_talento(talento_data: dict):
     vaga_id = talento_data.get("vaga_id")
@@ -11,40 +12,27 @@ def inscrever_novo_talento(talento_data: dict):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"A vaga com id={vaga_id} não foi encontrada."
         )
-
     try:
         embedding = ia_service.gerar_embedding_para_talento(talento_data)
         talento_id = talento_repository.create_new_talento(talento_data, embedding)
-        novo_talento_criado = talento_repository.find_talento_by_id(talento_id)
-        return novo_talento_criado
-    
+        return talento_repository.find_talento_by_id(talento_id)
     except UniqueViolation:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Este e-mail já está cadastrado para esta vaga."
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este e-mail já está cadastrado para esta vaga.")
     except RuntimeError as e:
-        # Erro específico se o modelo de IA não carregar
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Erro no serviço de IA: {e}"
         )
     except Exception as e:
-        # Captura outros erros (ex: banco de dados) e os exibe
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Não foi possível inscrever o talento. Erro: {e}"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Não foi possível inscrever o talento. Erro: {e}")
+
 def listar_todos_talentos():
     return talento_repository.find_all_talentos()
 
 def buscar_talento_por_id(talento_id: int):
     talento = talento_repository.find_talento_by_id(talento_id)
     if not talento:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Talento não encontrado."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Talento não encontrado.")
     return talento
 
 def listar_talentos_por_vaga(vaga_id: int):
@@ -53,6 +41,43 @@ def listar_talentos_por_vaga(vaga_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"A vaga com id={vaga_id} não foi encontrada."
         )
-    
     talentos = talento_repository.find_and_format_talentos_by_vaga_id(vaga_id)
     return talentos
+
+def add_new_comment(texto: str, talento_id: int, user: UserPublic):
+    talento = talento_repository.find_talento_by_id(talento_id)
+    if not talento:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Talento não encontrado.")
+    try:
+        comment_id = talento_repository.create_comment(texto, talento_id, user.id)
+        comments = talento_repository.find_comments_by_talento_id(talento_id)
+        return next((c for c in comments if c['id'] == comment_id), None)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Não foi possível adicionar o comentário. Erro: {e}")
+
+def remove_comment(comment_id: int, user: UserPublic):
+    comment = talento_repository.find_comment_by_id(comment_id)
+    if not comment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comentário não encontrado.")
+    if comment['user_id'] != user.id and user.role != 'admin':
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Você não tem permissão para remover este comentário.")
+    if not talento_repository.delete_comment_by_id(comment_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível remover o comentário.")
+    return True
+
+def update_talento_status(talento_id: int, ativo: bool):
+    talento = talento_repository.find_talento_by_id(talento_id)
+    if not talento:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Talento não encontrado."
+        )
+    
+    success = talento_repository.update_status(talento_id, ativo)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não foi possível atualizar o status do talento."
+        )
+    
+    return talento_repository.find_talento_by_id(talento_id)

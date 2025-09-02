@@ -24,6 +24,7 @@ def find_vaga_by_id(vaga_id: int):
     return None
 
 def find_all_vagas():
+    # A cláusula WHERE foi removida para que o frontend possa filtrar por status
     sql = """
         SELECT 
             vagas.*, 
@@ -31,15 +32,19 @@ def find_all_vagas():
         FROM 
             vagas
         LEFT JOIN 
-            areas ON vagas.area_id = areas.id
-        WHERE 
-            vagas.finalizada_em IS NULL 
+            areas ON vagas.area_id = areas.id 
         ORDER BY 
             vagas.criado_em DESC;
     """
+    # Lógica reescrita para evitar o problema de conversão de tipos do Pandas
     with get_db_connection() as conn:
-        df = pd.read_sql_query(sql, conn)
-        return df.to_dict(orient='records')
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            vagas = cur.fetchall()
+            if not vagas:
+                return []
+            columns = [desc[0] for desc in cur.description]
+            return [dict(zip(columns, row)) for row in vagas]
 
 def create_new_vaga(vaga_data: dict):
     sql = """

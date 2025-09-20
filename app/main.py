@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.domain.md_vagas import vaga_controller
 from app.domain.md_talentos import talento_controller
-from app.domain.md_users import user_controller      # Verifique esta linha
-from app.domain.md_auth import auth_controller      # Verifique esta linha
+from app.domain.md_users import user_controller      
+from app.domain.md_auth import auth_controller     
 from app.domain.md_ia.model_loader import model_loader
 from app.infra.database_migration import run_migrations
 

@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from psycopg2.errors import UniqueViolation
+from mysql.connector.errors import IntegrityError  
 from . import talento_repository
 from app.domain.md_vagas import vaga_repository
 from app.domain.md_ia import ia_service
@@ -16,7 +16,7 @@ def inscrever_novo_talento(talento_data: dict):
         embedding = ia_service.gerar_embedding_para_talento(talento_data)
         talento_id = talento_repository.create_new_talento(talento_data, embedding)
         return talento_repository.find_talento_by_id(talento_id)
-    except UniqueViolation:
+    except IntegrityError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Este e-mail já está cadastrado para esta vaga.")
     except RuntimeError as e:
         raise HTTPException(

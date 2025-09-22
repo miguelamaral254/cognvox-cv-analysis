@@ -5,7 +5,7 @@ Este projeto é uma API RESTful construída com FastAPI para gerenciar vagas de 
 ## Tecnologias Utilizadas
 - **Backend:** FastAPI
 - **Validação de Dados:** Pydantic
-- **Inteligência Artificial:** Sentence-Transformers
+- **Inteligência Artificial:** Sentence-Transformersw
 - **Banco de Dados:** PostgreSQL (com Psycopg2)
 - **Servidor ASGI:** Uvicorn
 

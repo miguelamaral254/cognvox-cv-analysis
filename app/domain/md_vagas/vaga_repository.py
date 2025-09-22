@@ -2,6 +2,21 @@ import pandas as pd
 import json
 from app.infra.database import get_db_connection
 
+def _parse_vaga_json_fields(vaga_dict):
+    """Função auxiliar para converter campos JSON de string para dict."""
+    if not vaga_dict:
+        return vaga_dict
+    
+    json_fields = ['criterios_de_analise', 'criterios_diferenciais_de_analise']
+    for field in json_fields:
+        if vaga_dict.get(field) and isinstance(vaga_dict[field], str):
+            try:
+                vaga_dict[field] = json.loads(vaga_dict[field])
+            except json.JSONDecodeError:
+                # Mantém o valor original se não for um JSON válido
+                pass
+    return vaga_dict
+
 def find_vaga_by_id(vaga_id: int):
     sql = """
         SELECT 
@@ -20,11 +35,12 @@ def find_vaga_by_id(vaga_id: int):
             vaga = cur.fetchone()
             if vaga:
                 columns = [desc[0] for desc in cur.description]
-                return dict(zip(columns, vaga))
+                vaga_dict = dict(zip(columns, vaga))
+                # Converte os campos JSON antes de retornar
+                return _parse_vaga_json_fields(vaga_dict)
     return None
 
 def find_all_vagas():
-    # A cláusula WHERE foi removida para que o frontend possa filtrar por status
     sql = """
         SELECT 
             vagas.*, 
@@ -36,7 +52,6 @@ def find_all_vagas():
         ORDER BY 
             vagas.criado_em DESC;
     """
-    # Lógica reescrita para evitar o problema de conversão de tipos do Pandas
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql)
@@ -44,15 +59,16 @@ def find_all_vagas():
             if not vagas:
                 return []
             columns = [desc[0] for desc in cur.description]
-            return [dict(zip(columns, row)) for row in vagas]
-
+            vagas_list = [dict(zip(columns, row)) for row in vagas]
+            # Converte os campos JSON para cada vaga na lista
+            return [_parse_vaga_json_fields(vaga) for vaga in vagas_list]
 def create_new_vaga(vaga_data: dict):
     sql = """
         INSERT INTO vagas (
             titulo_vaga, descricao, cidade, modelo_trabalho, area_id, 
             criterios_de_analise, vaga_pcd, criterios_diferenciais_de_analise
         ) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -66,7 +82,7 @@ def create_new_vaga(vaga_data: dict):
                 vaga_data.get('vaga_pcd', False),
                 json.dumps(vaga_data.get('criterios_diferenciais_de_analise'))
             ))
-            new_id = cur.fetchone()[0]
+            new_id = cur.lastrowid
             conn.commit()
             return new_id
 

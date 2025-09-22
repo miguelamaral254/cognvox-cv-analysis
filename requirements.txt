@@ -9,7 +9,7 @@ fastapi
 uvicorn[standard]
 
 # Database & Environment
-psycopg2-binary
+mysql-connector-python
 python-dotenv
 
 # Validation & Security

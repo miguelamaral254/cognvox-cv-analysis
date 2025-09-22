@@ -1,7 +1,6 @@
 import pandas as pd
 import json
 from app.infra.database import get_db_connection
-from psycopg2.extras import DictCursor
 
 def update_status(talento_id: int, ativo: bool):
     sql = "UPDATE talentos SET ativo = %s WHERE id = %s;"
@@ -27,8 +26,7 @@ def find_and_format_talentos_by_vaga_id(vaga_id: int) -> list:
             talentos t
         LEFT JOIN vagas v ON t.vaga_id = v.id
         LEFT JOIN areas a ON v.area_id = a.id
-        WHERE t.vaga_id = %s 
-        ORDER BY t.criado_em DESC;
+        WHERE t.vaga_id = %s ;
     """
     with get_db_connection() as conn:
         df = pd.read_sql_query(sql_query, conn, params=(vaga_id,))
@@ -47,7 +45,7 @@ def create_new_talento(talento_data: dict, embedding: list):
             redes_sociais, cursos_extracurriculares, deficiencia, deficiencia_detalhes, 
             aceita_termos, confirmar_dados_verdadeiros, embedding, ativo
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id;
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -68,7 +66,7 @@ def create_new_talento(talento_data: dict, embedding: list):
                 str(embedding),
                 talento_data.get('ativo', True)
             ))
-            new_id = cur.fetchone()[0]
+            new_id = cur.lastrowid
             conn.commit()
             return new_id
 
@@ -92,8 +90,7 @@ def find_all_talentos():
         SELECT t.*, v.area_id, a.nome AS nome_area
         FROM talentos t
         LEFT JOIN vagas v ON t.vaga_id = v.id
-        LEFT JOIN areas a ON v.area_id = a.id
-        ORDER BY t.criado_em DESC;
+        LEFT JOIN areas a ON v.area_id = a.id ;
     """
     with get_db_connection() as conn:
         df = pd.read_sql_query(sql, conn)
@@ -122,36 +119,35 @@ def find_talento_by_id(talento_id: int):
 def create_comment(texto: str, talento_id: int, user_id: int):
     sql = """
         INSERT INTO comentarios_talentos (texto, talento_id, user_id)
-        VALUES (%s, %s, %s) RETURNING id;
+        VALUES (%s, %s, %s);
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (texto, talento_id, user_id))
-            new_id = cur.fetchone()[0]
+            new_id = cur.lastrowid
             conn.commit()
             return new_id
 
 def find_comment_by_id(comment_id: int):
     sql = "SELECT * FROM comentarios_talentos WHERE id = %s;"
     with get_db_connection() as conn:
-        with conn.cursor(cursor_factory=DictCursor) as cur:
+        with conn.cursor(dictionary=True) as cur:
             cur.execute(sql, (comment_id,))
             comment = cur.fetchone()
-            return dict(comment) if comment else None
+            return comment if comment else None
 
 def find_comments_by_talento_id(talento_id: int):
     sql = """
         SELECT c.*, u.nome as user_nome
         FROM comentarios_talentos c
         JOIN users u ON c.user_id = u.id
-        WHERE c.talento_id = %s
-        ORDER BY c.criado_em ASC;
+        WHERE c.talento_id = %s ;
     """
     with get_db_connection() as conn:
-        with conn.cursor(cursor_factory=DictCursor) as cur:
+        with conn.cursor(dictionary=True) as cur:
             cur.execute(sql, (talento_id,))
             comments = cur.fetchall()
-            return [dict(row) for row in comments]
+            return comments
 
 def delete_comment_by_id(comment_id: int):
     sql = "DELETE FROM comentarios_talentos WHERE id = %s;"

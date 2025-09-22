@@ -1,5 +1,5 @@
 import os
-import psycopg2
+import mysql.connector 
 from dotenv import load_dotenv
 from contextlib import contextmanager
 
@@ -7,7 +7,7 @@ load_dotenv()
 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST"),
-    "dbname": os.getenv("DB_NAME"),
+    "database": os.getenv("DB_NAME"), 
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASS"),
     "port": os.getenv("DB_PORT")
@@ -15,13 +15,14 @@ DB_CONFIG = {
 
 @contextmanager
 def get_db_connection():
+
     conn = None
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = mysql.connector.connect(**DB_CONFIG)
         yield conn
-    except psycopg2.OperationalError as e:
-        print(f"🚨 Erro de conexão com o banco de dados: {e}")
+    except mysql.connector.Error as e:
+        print(f"🚨 Erro de conexão com o banco de dados MySQL: {e}")
         raise
     finally:
-        if conn is not None:
+        if conn is not None and conn.is_connected():
             conn.close()

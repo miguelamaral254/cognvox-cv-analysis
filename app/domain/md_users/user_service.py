@@ -1,23 +1,17 @@
 from fastapi import HTTPException, status
 from . import user_repository
-from .user_schema import UserCreate, UserProfileUpdate, UserPasswordUpdate, UserStatusUpdate
+from .user_schema import UserCreate, UserProfileUpdate, UserPasswordUpdate, UserStatusUpdate, RoleCreate, RoleUpdate
 from app.domain.md_auth.password_utils import get_password_hash, verify_password
 
 def create_new_user(user_data: UserCreate):
     existing_user = user_repository.get_user_by_email(user_data.email)
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Um usuário com este e-mail já existe."
-        )
-    try:
-        new_user = user_repository.create_user(user_data)
-        return new_user
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Não foi possível criar o usuário. Erro: {e}"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Um usuário com este e-mail já existe.")
+    role = user_repository.find_role_by_id(user_data.user_role_id)
+    if not role:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"A role com ID {user_data.user_role_id} não existe.")
+
+    return user_repository.create_user(user_data)
 
 def get_all_users():
     return user_repository.find_all_users()
@@ -72,3 +66,38 @@ def set_user_status(user_id: int, status_data: UserStatusUpdate):
         )
     
     return get_user_by_id(user_id)
+def create_new_role(role_data: RoleCreate):
+    existing_role = user_repository.find_role_by_name(role_data.nome)
+    if existing_role:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Uma role com este nome já existe.")
+    return user_repository.create_role(role_data)
+
+def get_all_roles():
+    return user_repository.find_all_roles()
+
+def get_role_by_id(role_id: int):
+    role = user_repository.find_role_by_id(role_id)
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role não encontrada.")
+    return role
+
+def update_existing_role(role_id: int, role_data: RoleUpdate):
+    get_role_by_id(role_id) # Garante que a role existe
+    existing_role = user_repository.find_role_by_name(role_data.nome)
+    if existing_role and existing_role['id'] != role_id:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Uma role com este nome já existe.")
+    
+    user_repository.update_role(role_id, role_data)
+    return get_role_by_id(role_id)
+
+def delete_role_by_id(role_id: int):
+    get_role_by_id(role_id) # Garante que a role existe
+    
+    users_with_role = user_repository.count_users_by_role_id(role_id)
+    if users_with_role > 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não é possível excluir a role, pois ela está em uso.")
+
+    success = user_repository.delete_role(role_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Não foi possível excluir a role.")
+    return {"message": "Role excluída com sucesso."}

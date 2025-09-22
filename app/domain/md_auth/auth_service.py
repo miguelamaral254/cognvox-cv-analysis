@@ -1,5 +1,3 @@
-# app/domain/md_auth/auth_service.py
-
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -45,4 +43,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserPublic:
     user = user_repository.get_user_by_email(email=token_data.email)
     if user is None:
         raise credentials_exception
+
+    if not user.get('is_active', False):
+        raise credentials_exception
+        
     return UserPublic.model_validate(user)

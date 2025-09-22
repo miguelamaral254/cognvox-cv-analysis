@@ -31,7 +31,6 @@ def startup_event():
     run_migrations()
     model_loader.get_model()
 
-# Verifique se os routers de auth e users estão incluídos aqui
 app.include_router(auth_controller.router)
 app.include_router(user_controller.router)
 app.include_router(vaga_controller.router)

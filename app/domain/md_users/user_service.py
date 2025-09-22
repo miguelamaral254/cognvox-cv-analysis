@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from . import user_repository
-from .user_schema import UserCreate, UserProfileUpdate, UserPasswordUpdate
+from .user_schema import UserCreate, UserProfileUpdate, UserPasswordUpdate, UserStatusUpdate
 from app.domain.md_auth.password_utils import get_password_hash, verify_password
 
 def create_new_user(user_data: UserCreate):
@@ -60,3 +60,15 @@ def update_user_password(user_id: int, password_data: UserPasswordUpdate):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível alterar a senha.")
     
     return {"message": "Senha alterada com sucesso."}
+
+def set_user_status(user_id: int, status_data: UserStatusUpdate):
+    get_user_by_id(user_id)
+    
+    success = user_repository.set_user_active_status(user_id, status_data.is_active)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Não foi possível atualizar o status do usuário."
+        )
+    
+    return get_user_by_id(user_id)

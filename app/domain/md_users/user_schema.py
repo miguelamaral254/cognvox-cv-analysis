@@ -11,6 +11,7 @@ class UserBase(BaseModel):
     nome: str = Field(..., example="Admin User")
     email: EmailStr = Field(..., example="admin@example.com")
     role: UserRole = Field(..., example=UserRole.ADMIN)
+    is_active: bool = Field(True, example=True)
 
 class UserCreate(UserBase):
     password: str = Field(..., example="uma_senha_forte")
@@ -30,7 +31,9 @@ class UserProfileUpdate(BaseModel):
     email: EmailStr = Field(..., example="novo.email@example.com")
     currentPassword: str = Field(..., description="Senha atual do usuário para confirmação")
 
-
 class UserPasswordUpdate(BaseModel):
     currentPassword: str = Field(..., example="senha_atual_123")
     newPassword: str = Field(..., min_length=8, example="nova_senha_forte_456")
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool

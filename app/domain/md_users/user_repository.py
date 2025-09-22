@@ -61,3 +61,10 @@ def update_password(user_id: int, new_hashed_password: str):
             cur.execute(sql, (new_hashed_password, user_id))
             conn.commit()
             return cur.rowcount > 0
+def set_user_active_status(user_id: int, is_active: bool):
+    sql = "UPDATE users SET is_active = %s WHERE id = %s;"
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (is_active, user_id))
+            conn.commit()
+            return cur.rowcount > 0

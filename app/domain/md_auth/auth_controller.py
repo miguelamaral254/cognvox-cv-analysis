@@ -16,6 +16,12 @@ def login_for_access_token(auth_data: AuthRequest):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    if not user.get('is_active', False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuário inativo, contate a administração"
+        )
+    
     token_data = {
         "sub": user['email'],
         "id": user['id'],

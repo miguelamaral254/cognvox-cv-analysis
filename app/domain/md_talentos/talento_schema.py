@@ -25,6 +25,13 @@ class TalentoBase(BaseModel):
     email: EmailStr = Field(..., example="maria.silva@example.com")
     cidade: str | None = Field(None, max_length=100, example="Recife")
     telefone: str | None = Field(None, max_length=20, example="+55 11 98765-4321")
+    
+    cep: str | None = Field(None, max_length=10, example="50000-000")
+    rua: str | None = Field(None, max_length=255, example="Rua das Flores")
+    numero: str | None = Field(None, max_length=20, example="123")
+    complemento: str | None = Field(None, max_length=100, example="Apto 404")
+    bairro: str | None = Field(None, max_length=100, example="Boa Viagem")
+    
     sobre_mim: str | None = Field(None, example="Sou uma desenvolvedora apaixonada por tecnologia...")
     
     experiencia_profissional: List[Dict[str, Any]] | None = Field(None, example=[{"cargo": "Dev Pleno", "empresa": "Tech Corp"}])

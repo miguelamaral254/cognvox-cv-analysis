@@ -1,17 +1,26 @@
 from fastapi import HTTPException, status
 from mysql.connector.errors import IntegrityError  
-from . import talento_repository
+from . import talento_repository, comentario_repository
 from app.domain.md_vagas import vaga_repository
 from app.domain.md_ia import ia_service
 from app.domain.md_users.user_schema import UserPublic
 
 def inscrever_novo_talento(talento_data: dict):
     vaga_id = talento_data.get("vaga_id")
+    email = talento_data.get("email")
+
     if not vaga_repository.find_vaga_by_id(vaga_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"A vaga com id={vaga_id} não foi encontrada."
         )
+
+    if talento_repository.is_talento_already_applied(email=email, vaga_id=vaga_id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Candidato já aplicou na vaga"
+        )
+
     try:
         embedding = ia_service.gerar_embedding_para_talento(talento_data)
         talento_id = talento_repository.create_new_talento(talento_data, embedding)
@@ -49,19 +58,19 @@ def add_new_comment(texto: str, talento_id: int, user: UserPublic):
     if not talento:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Talento não encontrado.")
     try:
-        comment_id = talento_repository.create_comment(texto, talento_id, user.id)
-        comments = talento_repository.find_comments_by_talento_id(talento_id)
+        comment_id = comentario_repository.create_comment(texto, talento_id, user.id)
+        comments = comentario_repository.find_comments_by_talento_id(talento_id)
         return next((c for c in comments if c['id'] == comment_id), None)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Não foi possível adicionar o comentário. Erro: {e}")
 
 def remove_comment(comment_id: int, user: UserPublic):
-    comment = talento_repository.find_comment_by_id(comment_id)
+    comment = comentario_repository.find_comment_by_id(comment_id)
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comentário não encontrado.")
     if comment['user_id'] != user.id and user.role != 'admin':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Você não tem permissão para remover este comentário.")
-    if not talento_repository.delete_comment_by_id(comment_id):
+    if not comentario_repository.delete_comment_by_id(comment_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível remover o comentário.")
     return True
 
@@ -81,3 +90,4 @@ def update_talento_status(talento_id: int, ativo: bool):
         )
     
     return talento_repository.find_talento_by_id(talento_id)
+

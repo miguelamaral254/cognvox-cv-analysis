@@ -58,12 +58,15 @@ def add_new_comment(texto: str, talento_id: int, user: UserPublic):
     if not talento:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Talento não encontrado.")
     try:
-        comment_id = comentario_repository.create_comment(texto, talento_id, user.id)
-        comments = comentario_repository.find_comments_by_talento_id(talento_id)
-        return next((c for c in comments if c['id'] == comment_id), None)
+        comentario_repository.create_comment(texto, talento_id, user.id)
+        return 
+        
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Não foi possível adicionar o comentário. Erro: {e}")
-
+def listar_comentarios_por_lista_de_talentos(talento_ids: list[int]):
+    if not talento_ids:
+        return []
+    return comentario_repository.find_comments_by_talento_ids(talento_ids)
 def remove_comment(comment_id: int, user: UserPublic):
     comment = comentario_repository.find_comment_by_id(comment_id)
     if not comment:

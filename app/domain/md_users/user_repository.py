@@ -3,7 +3,6 @@ from .user_schema import UserCreate, UserProfileUpdate, RoleCreate, RoleUpdate
 from app.domain.md_auth.password_utils import get_password_hash
 
 def get_user_by_email(email: str):
-    # SQL CORRIGIDO: Usa LEFT JOIN para garantir que o usuário seja sempre retornado
     sql = """
         SELECT
             u.*,
@@ -46,9 +45,7 @@ def find_all_users():
         FROM
             users u
         LEFT JOIN
-            user_role ur ON u.user_role_id = ur.id
-        ORDER BY
-            u.nome ASC;
+            user_role ur ON u.user_role_id = ur.id;
     """
     with get_db_connection() as conn:
         with conn.cursor(dictionary=True) as cur:

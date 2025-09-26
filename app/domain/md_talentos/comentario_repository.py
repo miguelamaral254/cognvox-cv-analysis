@@ -25,8 +25,7 @@ def find_comments_by_talento_id(talento_id: int):
         SELECT c.*, u.nome as user_nome
         FROM comentarios_talentos c
         JOIN users u ON c.user_id = u.id
-        WHERE c.talento_id = %s
-        ORDER BY c.criado_em ASC;
+        WHERE c.talento_id = %s;
     """
     with get_db_connection() as conn:
         with conn.cursor(dictionary=True) as cur:
@@ -41,3 +40,20 @@ def delete_comment_by_id(comment_id: int):
             cur.execute(sql, (comment_id,))
             conn.commit()
             return cur.rowcount > 0
+def find_comments_by_talento_ids(talento_ids: list[int]):
+    if not talento_ids:
+        return []
+
+    placeholders = ', '.join(['%s'] * len(talento_ids))
+    
+    sql = f"""
+        SELECT c.*, u.nome as user_nome
+        FROM comentarios_talentos c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.talento_id IN ({placeholders});
+    """
+    with get_db_connection() as conn:
+        with conn.cursor(dictionary=True) as cur:
+            cur.execute(sql, tuple(talento_ids))
+            comments = cur.fetchall()
+            return comments

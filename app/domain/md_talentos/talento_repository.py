@@ -34,8 +34,6 @@ def find_and_format_talentos_by_vaga_id(vaga_id: int) -> list:
         if df.empty:
             return []
         records = df.to_dict(orient='records')
-        for record in records:
-            record['comentarios'] = comentario_repository.find_comments_by_talento_id(record['id'])
         return _parse_json_fields(records)
 
 def create_new_talento(talento_data: dict, embedding: list):
@@ -112,8 +110,6 @@ def find_all_talentos():
     with get_db_connection() as conn:
         df = pd.read_sql_query(sql, conn)
         records = df.to_dict(orient='records')
-        for record in records:
-            record['comentarios'] = comentario_repository.find_comments_by_talento_id(record['id'])
         return _parse_json_fields(records)
 
 def find_talento_by_id(talento_id: int):

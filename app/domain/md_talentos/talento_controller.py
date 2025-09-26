@@ -1,11 +1,16 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from typing import List
+from pydantic import BaseModel
 from . import talento_service
 from .talento_schema import TalentoCreate, TalentoPublic, ComentarioCreate, ComentarioPublic, TalentoStatusUpdate
 from app.domain.md_users.user_schema import UserPublic
 from app.domain.md_auth.auth_service import get_current_user
 
 router = APIRouter(prefix="/talentos", tags=["Talentos"])
+
+# Modelo Pydantic para o corpo da requisição do novo endpoint
+class TalentoIdList(BaseModel):
+    talento_ids: List[int]
 
 @router.post("", response_model=TalentoPublic, status_code=status.HTTP_201_CREATED)
 def inscrever_talento_endpoint(talento_data: TalentoCreate):
@@ -34,17 +39,25 @@ def update_talento_status_endpoint(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Ação não permitida.")
     return talento_service.update_talento_status(talento_id, status_update.ativo)
 
-@router.post("/{talento_id}/comentarios", response_model=ComentarioPublic, status_code=status.HTTP_201_CREATED, tags=["Comentários"])
+@router.post("/{talento_id}/comentarios", status_code=status.HTTP_204_NO_CONTENT) 
 def create_comment_endpoint(
     talento_id: int,
     comentario_data: ComentarioCreate,
     current_user: UserPublic = Depends(get_current_user)
 ):
-    return talento_service.add_new_comment(
+    talento_service.add_new_comment(
         texto=comentario_data.texto,
         talento_id=talento_id,
         user=current_user
     )
+    return
+@router.post("/comentarios/batch", response_model=List[ComentarioPublic], tags=["Comentários"])
+def listar_comentarios_por_ids_endpoint(
+    id_list: TalentoIdList,
+    current_user: UserPublic = Depends(get_current_user)
+):
+    
+    return talento_service.listar_comentarios_por_lista_de_talentos(id_list.talento_ids)
 
 @router.delete("/comentarios/{comment_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Comentários"])
 def delete_comment_endpoint(

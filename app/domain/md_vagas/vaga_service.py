@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from . import vaga_repository
 from app.domain.md_talentos import talento_repository
 from app.domain.md_ia import ia_service
+from . import area_repository
 
 def formatar_experiencia(exp_json):
     if not exp_json or not isinstance(exp_json, list): return ""
@@ -99,4 +100,65 @@ def finalizar_vaga(vaga_id: int):
     if not success: 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível finalizar a vaga.")
         
+    return True
+def criar_nova_area(area_data: dict):
+    """Cria uma nova área, verificando se o nome já existe."""
+    existing_area = area_repository.find_area_by_name(area_data['nome'])
+    if existing_area:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A área com o nome '{area_data['nome']}' já existe."
+        )
+    try:
+        area_id = area_repository.create_area(area_data)
+        return area_repository.find_area_by_id(area_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Não foi possível criar a área. Erro: {e}"
+        )
+
+def listar_todas_as_areas():
+    return area_repository.find_all_areas()
+
+def buscar_area_por_id(area_id: int):
+    area = area_repository.find_area_by_id(area_id)
+    if not area:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Área não encontrada.")
+    return area
+
+def atualizar_area_existente(area_id: int, area_data: dict):
+    buscar_area_por_id(area_id)
+
+    if area_data.get('nome'):
+        existing_area = area_repository.find_area_by_name(area_data['nome'])
+        if existing_area and existing_area['id'] != area_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"O nome '{area_data['nome']}' já está em uso por outra área."
+            )
+
+    success = area_repository.update_area(area_id, area_data)
+    if success:
+        return area_repository.find_area_by_id(area_id)
+    
+    # Este caso é improvável se a lógica acima estiver correta, mas é uma salvaguarda
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível atualizar a área.")
+
+def deletar_area_por_id(area_id: int):
+    buscar_area_por_id(area_id)
+    try:
+        success = area_repository.delete_area(area_id)
+        if not success:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível deletar a área.")
+    except Exception as e:
+        if 'foreign key constraint' in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Não é possível deletar a área, pois ela está associada a uma ou mais vagas."
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ocorreu um erro interno ao deletar a área: {e}"
+        )
     return True

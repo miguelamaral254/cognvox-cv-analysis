@@ -3,6 +3,7 @@ from typing import List
 from . import vaga_service
 from .vaga_schema import RankingResponse, VagaCreate, VagaPublic, AnaliseRequest
 from app.domain.md_auth.auth_service import get_current_user
+from .area_schema import AreaCreate, AreaPublic, AreaUpdate
 
 router = APIRouter(prefix="/vagas", tags=["Vagas e Análise"])
 
@@ -13,6 +14,27 @@ def criar_vaga_endpoint(vaga_data: VagaCreate, _ = Depends(get_current_user)):
 @router.get("", response_model=List[VagaPublic])
 def listar_vagas_endpoint():
     return vaga_service.listar_vagas_abertas()
+
+@router.post("/areas", response_model=AreaPublic, status_code=status.HTTP_201_CREATED, tags=["Áreas"])
+def criar_area_endpoint(area_data: AreaCreate, _ = Depends(get_current_user)):
+    return vaga_service.criar_nova_area(area_data.model_dump())
+
+@router.get("/areas", response_model=List[AreaPublic], tags=["Áreas"])
+def listar_areas_endpoint():
+    return vaga_service.listar_todas_as_areas()
+
+@router.get("/areas/{area_id}", response_model=AreaPublic, tags=["Áreas"])
+def buscar_area_endpoint(area_id: int):
+    return vaga_service.buscar_area_por_id(area_id)
+
+@router.put("/areas/{area_id}", response_model=AreaPublic, tags=["Áreas"])
+def atualizar_area_endpoint(area_id: int, area_data: AreaUpdate, _ = Depends(get_current_user)):
+    return vaga_service.atualizar_area_existente(area_id, area_data.model_dump(exclude_unset=True))
+
+@router.delete("/areas/{area_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Áreas"])
+def deletar_area_endpoint(area_id: int, _ = Depends(get_current_user)):
+    vaga_service.deletar_area_por_id(area_id)
+    return None
 
 @router.get("/{vaga_id}", response_model=VagaPublic)
 def buscar_vaga_endpoint(vaga_id: int):

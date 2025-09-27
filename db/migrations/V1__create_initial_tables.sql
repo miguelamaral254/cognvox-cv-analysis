@@ -1,8 +1,7 @@
 -- Arquivo V1__create_initial_tables.sql
-
-CREATE TABLE IF NOT EXISTS areas (
+CREATE TABLE areas (
     id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL UNIQUE,
+    nome VARCHAR(100) COLLATE utf8mb4_general_ci NOT NULL UNIQUE,
     descricao TEXT,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

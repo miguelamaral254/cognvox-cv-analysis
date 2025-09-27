@@ -48,9 +48,7 @@ def find_all_vagas():
         FROM 
             vagas
         LEFT JOIN 
-            areas ON vagas.area_id = areas.id 
-        ORDER BY 
-            vagas.criado_em DESC;
+            areas ON vagas.area_id = areas.id;
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:

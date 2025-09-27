@@ -91,7 +91,7 @@ def update_existing_role(role_id: int, role_data: RoleUpdate):
     return get_role_by_id(role_id)
 
 def delete_role_by_id(role_id: int):
-    get_role_by_id(role_id) # Garante que a role existe
+    get_role_by_id(role_id) 
     
     users_with_role = user_repository.count_users_by_role_id(role_id)
     if users_with_role > 0:
@@ -101,3 +101,18 @@ def delete_role_by_id(role_id: int):
     if not success:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Não foi possível excluir a role.")
     return {"message": "Role excluída com sucesso."}
+
+# Adicione esta função ao final da seção de usuários no user_service.py
+
+def update_user_role(user_id: int, new_role_name: str):
+    get_user_by_id(user_id) # Garante que o usuário existe
+
+    new_role = user_repository.find_role_by_name(new_role_name)
+    if not new_role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"A role '{new_role_name}' não foi encontrada.")
+    
+    success = user_repository.update_role_for_user(user_id, new_role['id'])
+    if not success:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível atualizar a role do usuário.")
+
+    return get_user_by_id(user_id)

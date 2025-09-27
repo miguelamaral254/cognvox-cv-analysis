@@ -146,3 +146,10 @@ def count_users_by_role_id(role_id: int):
             cur.execute(sql, (role_id,))
             result = cur.fetchone()
             return result['total'] if result else 0
+def update_role_for_user(user_id: int, role_id: int):
+    sql = "UPDATE users SET user_role_id = %s WHERE id = %s;"
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (role_id, user_id))
+            conn.commit()
+            return cur.rowcount > 0

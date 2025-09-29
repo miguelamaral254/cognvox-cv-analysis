@@ -47,6 +47,7 @@ class TalentoBase(BaseModel):
     deficiencia: bool = Field(False)
     aceita_termos: bool
     confirmar_dados_verdadeiros: bool
+    aceitar_uso_ia: bool 
     ativo: bool = Field(True)
 
 class TalentoCreate(TalentoBase):

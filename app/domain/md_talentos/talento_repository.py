@@ -45,8 +45,7 @@ def create_new_talento(talento_data: dict, embedding: list):
                 aceita_termos, confirmar_dados_verdadeiros, embedding, ativo,
                 cep, rua, numero, complemento, bairro, aceitar_uso_ia
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id;
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """ 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -71,11 +70,11 @@ def create_new_talento(talento_data: dict, embedding: list):
                 talento_data.get('numero'),
                 talento_data.get('complemento'),
                 talento_data.get('bairro'),
-                talento_data.get('aceitar_uso_ia', True)
+                talento_data.get('aceitar_uso_ia')
             ))
             new_id = cur.lastrowid  
             conn.commit()
-            return new_id
+            return new_id   
 
 def is_talento_already_applied(email: str, vaga_id: int) -> bool:
     sql = "SELECT COUNT(1) FROM talentos WHERE email = %s AND vaga_id = %s;"

@@ -1,15 +1,19 @@
 from fastapi import APIRouter, status, Depends
 from typing import List
 from . import vaga_service
-from .vaga_schema import RankingResponse, VagaCreate, VagaPublic, AnaliseRequest
+from .vaga_schema import RankingResponse, VagaCreate, VagaPublic, AnaliseRequest, VagaFinalize
 from app.domain.md_auth.auth_service import get_current_user
 from .area_schema import AreaCreate, AreaPublic, AreaUpdate
+from app.domain.md_users.user_schema import UserPublic 
 
 router = APIRouter(prefix="/vagas", tags=["Vagas e Análise"])
 
 @router.post("", response_model=VagaPublic, status_code=status.HTTP_201_CREATED)
-def criar_vaga_endpoint(vaga_data: VagaCreate, _ = Depends(get_current_user)):
-    return vaga_service.criar_nova_vaga(vaga_data.model_dump())
+def criar_vaga_endpoint(vaga_data: VagaCreate):
+    return vaga_service.criar_nova_vaga(
+        vaga_data.model_dump(exclude={'criado_por'}),
+        criado_por=vaga_data.criado_por
+    )
 
 @router.get("", response_model=List[VagaPublic])
 def listar_vagas_endpoint():
@@ -45,9 +49,9 @@ def atualizar_vaga_endpoint(vaga_id: int, vaga_data: VagaCreate, _ = Depends(get
     return vaga_service.atualizar_vaga(vaga_id, vaga_data.model_dump())
 
 @router.post("/{vaga_id}/finalizar", status_code=status.HTTP_204_NO_CONTENT)
-def finalizar_vaga_endpoint(vaga_id: int, _ = Depends(get_current_user)):
-    vaga_service.finalizar_vaga(vaga_id)
-    return None 
+def finalizar_vaga_endpoint(vaga_id: int, finalize_data: VagaFinalize):
+    vaga_service.finalizar_vaga(vaga_id, finalizado_por=finalize_data.finalizado_por)
+    return None
 
 @router.post("/{vaga_id}/analisar", response_model=RankingResponse)
 def analisar_vaga_endpoint(vaga_id: int, request_body: AnaliseRequest, _ = Depends(get_current_user)):

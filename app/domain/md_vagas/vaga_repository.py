@@ -58,15 +58,15 @@ def find_all_vagas():
                 return []
             columns = [desc[0] for desc in cur.description]
             vagas_list = [dict(zip(columns, row)) for row in vagas]
-            # Converte os campos JSON para cada vaga na lista
             return [_parse_vaga_json_fields(vaga) for vaga in vagas_list]
-def create_new_vaga(vaga_data: dict):
+def create_new_vaga(vaga_data: dict, criado_por: int):
     sql = """
         INSERT INTO vagas (
             titulo_vaga, descricao, cidade, modelo_trabalho, area_id, 
-            criterios_de_analise, vaga_pcd, criterios_diferenciais_de_analise
+            criterios_de_analise, vaga_pcd, criterios_diferenciais_de_analise,
+            criado_por
         ) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -78,7 +78,8 @@ def create_new_vaga(vaga_data: dict):
                 vaga_data['area_id'],
                 json.dumps(vaga_data['criterios_de_analise']),
                 vaga_data.get('vaga_pcd', False),
-                json.dumps(vaga_data.get('criterios_diferenciais_de_analise'))
+                json.dumps(vaga_data.get('criterios_diferenciais_de_analise')),
+                criado_por
             ))
             new_id = cur.lastrowid
             conn.commit()
@@ -113,11 +114,11 @@ def update_existing_vaga(vaga_id: int, vaga_data: dict):
             conn.commit()
             return cur.rowcount > 0
 
-def finalize_vaga_by_id(vaga_id: int):
-    sql = "UPDATE vagas SET finalizada_em = CURRENT_TIMESTAMP WHERE id = %s;"
+def finalize_vaga_by_id(vaga_id: int, finalizado_por: int):
+    sql = "UPDATE vagas SET finalizada_em = CURRENT_TIMESTAMP, finalizado_por = %s WHERE id = %s;"
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (vaga_id,))
+            cur.execute(sql, (finalizado_por, vaga_id))
             conn.commit()
             return cur.rowcount > 0
 

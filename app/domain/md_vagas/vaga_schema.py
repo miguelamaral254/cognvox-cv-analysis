@@ -37,13 +37,17 @@ class VagaBase(BaseModel):
     })
 
 class VagaCreate(VagaBase):
-    pass
+    criado_por: int = Field(..., example=1, description="ID do usuário que está criando a vaga.")
+
 
 class VagaPublic(VagaBase):
     id: int
     criado_em: datetime
     finalizada_em: Optional[datetime] = None
     nome_area: Optional[str] = None
+    criado_por: Optional[int] = None
+    finalizado_por: Optional[int] = None
+
 
     class Config:
         from_attributes = True
@@ -59,3 +63,5 @@ class VagaInList(BaseModel):
     vaga_pcd: bool = Field(False)
     criado_em: datetime
     finalizada_em: Optional[datetime] = None
+class VagaFinalize(BaseModel):
+    finalizado_por: int = Field(..., example=1, description="ID do usuário que está finalizando a vaga.")

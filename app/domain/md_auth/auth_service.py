@@ -24,11 +24,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+# Em auth_service.py
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> UserPublic:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Não foi possível validar as credenciais",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -43,8 +44,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserPublic:
     user = user_repository.get_user_by_email(email=token_data.email)
     if user is None:
         raise credentials_exception
-
     if not user.get('is_active', False):
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuário inativo, contate a administração"
+        )
         
     return UserPublic.model_validate(user)

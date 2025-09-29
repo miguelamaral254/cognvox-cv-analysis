@@ -62,9 +62,9 @@ def analisar_e_ranquear_vaga(vaga_id: int, top_candidatos: int):
     
     vaga_repository.save_ranking(vaga_id, ranking_para_salvar)
     return {"titulo_vaga": params_vaga["titulo_vaga"], "ranking": ranking_para_resposta}
-def criar_nova_vaga(vaga_data: dict):
+def criar_nova_vaga(vaga_data: dict, criado_por: int): 
     try:
-        vaga_id = vaga_repository.create_new_vaga(vaga_data)
+        vaga_id = vaga_repository.create_new_vaga(vaga_data, criado_por) 
         return vaga_repository.find_vaga_by_id(vaga_id)
     except Exception as e:
         raise HTTPException(
@@ -88,15 +88,15 @@ def atualizar_vaga(vaga_id: int, vaga_data: dict):
         return vaga_repository.find_vaga_by_id(vaga_id)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível atualizar a vaga.")
 
-def finalizar_vaga(vaga_id: int):
+
+def finalizar_vaga(vaga_id: int, finalizado_por: int): 
     vaga = vaga_repository.find_vaga_by_id(vaga_id)
     if not vaga:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vaga não encontrada.")
     
     if vaga.get("finalizada_em"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vaga já foi finalizada.")
-        
-    success = vaga_repository.finalize_vaga_by_id(vaga_id)
+    success = vaga_repository.finalize_vaga_by_id(vaga_id, finalizado_por) 
     if not success: 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível finalizar a vaga.")
         

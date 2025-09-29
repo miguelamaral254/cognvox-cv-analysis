@@ -29,11 +29,17 @@ class UserCreate(BaseModel):
     email: EmailStr = Field(..., example="novo.usuario@example.com")
     password: str = Field(..., example="uma_senha_forte")
     user_role_id: int = Field(..., example=2, description="ID da role do usuário")
+    criado_por: int = Field(..., example=1, description="ID do usuário que está criando esta conta") # <--- CORRIGIDO
+
 
 class UserPublic(UserBase):
     id: int
     img_path: Optional[str] = None
     user_role_id: int
+    criado_por: Optional[int] = None
+    atualizado_por: Optional[int] = None
+    criado_por_nome: Optional[str] = Field(None, example="Nome do Criador")
+    atualizado_por_nome: Optional[str] = Field(None, example="Nome de Quem Atualizou")
     
     class Config:
         from_attributes = True
@@ -49,5 +55,8 @@ class UserPasswordUpdate(BaseModel):
 
 class UserStatusUpdate(BaseModel):
     is_active: bool
+    atualizado_por: int = Field(..., example=2, description="ID do admin que está alterando o status.")
+
 class UserRoleUpdate(BaseModel):
     role: str = Field(..., example="recrutador")
+    atualizado_por: int = Field(..., example=2, description="ID do admin que está alterando a role.")

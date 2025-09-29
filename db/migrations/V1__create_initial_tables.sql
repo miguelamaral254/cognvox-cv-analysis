@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS vagas (
     vaga_pcd BOOLEAN NOT NULL DEFAULT FALSE,
     criterios_diferenciais_de_analise JSONB,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    criado_por INTEGER REFERENCES users(id) ON DELETE SET NULL,
     finalizada_em TIMESTAMP WITH TIME ZONE
+    finalizado_por INTEGER REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TYPE user_role AS ENUM ('admin', 'user1', 'user2');
@@ -31,6 +33,8 @@ CREATE TABLE IF NOT EXISTS users (
     role user_role NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    criado_por INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    atualizado_por INTEGER REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS talentos (
@@ -56,6 +60,7 @@ CREATE TABLE IF NOT EXISTS talentos (
     deficiencia BOOLEAN NOT NULL DEFAULT FALSE,
     deficiencia_detalhes JSONB,
     aceita_termos BOOLEAN NOT NULL,
+    aceitar_uso_ia BOOLEAN NOT NULL,
     confirmar_dados_verdadeiros BOOLEAN NOT NULL,
     criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     embedding TEXT,

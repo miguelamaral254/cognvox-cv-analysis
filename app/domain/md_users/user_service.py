@@ -11,7 +11,7 @@ def create_new_user(user_data: UserCreate):
     if not role:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"A role com ID {user_data.user_role_id} não existe.")
 
-    return user_repository.create_user(user_data)
+    return user_repository.create_user(user_data, criado_por=user_data.criado_por) 
 
 def get_all_users():
     return user_repository.find_all_users()
@@ -55,15 +55,16 @@ def update_user_password(user_id: int, password_data: UserPasswordUpdate):
     
     return {"message": "Senha alterada com sucesso."}
 
-def set_user_status(user_id: int, status_data: UserStatusUpdate):
+def set_user_status(user_id: int, status_data: UserStatusUpdate): 
     get_user_by_id(user_id)
     
-    success = user_repository.set_user_active_status(user_id, status_data.is_active)
+    success = user_repository.set_user_active_status(
+        user_id, 
+        status_data.is_active, 
+        atualizado_por=status_data.atualizado_por 
+    )
     if not success:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Não foi possível atualizar o status do usuário."
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível atualizar o status.")
     
     return get_user_by_id(user_id)
 def create_new_role(role_data: RoleCreate):
@@ -102,16 +103,14 @@ def delete_role_by_id(role_id: int):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Não foi possível excluir a role.")
     return {"message": "Role excluída com sucesso."}
 
-# Adicione esta função ao final da seção de usuários no user_service.py
-
-def update_user_role(user_id: int, new_role_name: str):
-    get_user_by_id(user_id) # Garante que o usuário existe
+def update_user_role(user_id: int, new_role_name: str, atualizado_por: int): # <--- Adicionar parâmetro
+    get_user_by_id(user_id)
 
     new_role = user_repository.find_role_by_name(new_role_name)
     if not new_role:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"A role '{new_role_name}' não foi encontrada.")
     
-    success = user_repository.update_role_for_user(user_id, new_role['id'])
+    success = user_repository.update_role_for_user(user_id, new_role['id'], atualizado_por) # <--- Repassar ID
     if not success:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não foi possível atualizar a role do usuário.")
 

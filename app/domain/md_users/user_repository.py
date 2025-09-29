@@ -23,11 +23,17 @@ def find_user_by_id(user_id: int):
     sql = """
         SELECT
             u.*,
-            ur.nome AS role
+            ur.nome AS role,
+            criador.nome AS criado_por_nome,
+            atualizador.nome AS atualizado_por_nome
         FROM
             users u
         LEFT JOIN
             user_role ur ON u.user_role_id = ur.id
+        LEFT JOIN
+            users AS criador ON u.criado_por = criador.id
+        LEFT JOIN
+            users AS atualizador ON u.atualizado_por = atualizador.id
         WHERE
             u.id = %s;
     """
@@ -36,7 +42,6 @@ def find_user_by_id(user_id: int):
             cur.execute(sql, (user_id,))
             user = cur.fetchone()
             return user if user else None
-
 def find_all_users():
     sql = """
         SELECT
@@ -53,10 +58,10 @@ def find_all_users():
             users = cur.fetchall()
             return users
 
-def create_user(user_data: UserCreate):
+def create_user(user_data: UserCreate, criado_por: int): 
     sql = """
-        INSERT INTO users (nome, email, hashed_password, user_role_id)
-        VALUES (%s, %s, %s, %s);
+        INSERT INTO users (nome, email, hashed_password, user_role_id, criado_por)
+        VALUES (%s, %s, %s, %s, %s);
     """
     hashed_password = get_password_hash(user_data.password)
     with get_db_connection() as conn:
@@ -66,6 +71,7 @@ def create_user(user_data: UserCreate):
                 user_data.email,
                 hashed_password,
                 user_data.user_role_id,
+                criado_por  
             ))
             conn.commit()
     return get_user_by_email(user_data.email)
@@ -86,11 +92,11 @@ def update_password(user_id: int, new_hashed_password: str):
             conn.commit()
             return cur.rowcount > 0
 
-def set_user_active_status(user_id: int, is_active: bool):
-    sql = "UPDATE users SET is_active = %s WHERE id = %s;"
+def set_user_active_status(user_id: int, is_active: bool, atualizado_por: int):
+    sql = "UPDATE users SET is_active = %s, atualizado_por = %s WHERE id = %s;"
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (is_active, user_id))
+            cur.execute(sql, (is_active, atualizado_por, user_id))
             conn.commit()
             return cur.rowcount > 0
 def find_role_by_id(role_id: int):
@@ -146,10 +152,10 @@ def count_users_by_role_id(role_id: int):
             cur.execute(sql, (role_id,))
             result = cur.fetchone()
             return result['total'] if result else 0
-def update_role_for_user(user_id: int, role_id: int):
-    sql = "UPDATE users SET user_role_id = %s WHERE id = %s;"
+def update_role_for_user(user_id: int, role_id: int, atualizado_por: int):
+    sql = "UPDATE users SET user_role_id = %s, atualizado_por = %s WHERE id = %s;"
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (role_id, user_id))
+            cur.execute(sql, (role_id, atualizado_por, user_id))
             conn.commit()
             return cur.rowcount > 0

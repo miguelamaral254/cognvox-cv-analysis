@@ -38,15 +38,16 @@ def find_and_format_talentos_by_vaga_id(vaga_id: int) -> list:
 
 def create_new_talento(talento_data: dict, embedding: list):
     sql = """
-        INSERT INTO talentos (
-            vaga_id, nome, email, cidade, telefone, sobre_mim, experiencia_profissional,
-            formacao, idiomas, respostas_criterios, respostas_diferenciais,
-            redes_sociais, cursos_extracurriculares, deficiencia, deficiencia_detalhes,
-            aceita_termos, confirmar_dados_verdadeiros, embedding, ativo,
-            cep, rua, numero, complemento, bairro
-        )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-    """ 
+            INSERT INTO talentos (
+                vaga_id, nome, email, cidade, telefone, sobre_mim, experiencia_profissional,
+                formacao, idiomas, respostas_criterios, respostas_diferenciais,
+                redes_sociais, cursos_extracurriculares, deficiencia, deficiencia_detalhes,
+                aceita_termos, confirmar_dados_verdadeiros, embedding, ativo,
+                cep, rua, numero, complemento, bairro, aceitar_uso_ia
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id;
+        """ 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (
@@ -69,7 +70,8 @@ def create_new_talento(talento_data: dict, embedding: list):
                 talento_data.get('rua'),
                 talento_data.get('numero'),
                 talento_data.get('complemento'),
-                talento_data.get('bairro')
+                talento_data.get('bairro'),
+                talento_data.get('aceitar_uso_ia', True)
             ))
             new_id = cur.lastrowid  
             conn.commit()
